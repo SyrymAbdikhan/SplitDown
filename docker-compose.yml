@@ -1,0 +1,11 @@
+# Reads NEXT_PUBLIC_* from .env. Run: docker compose up --build
+services:
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?set it in .env}
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:?set it in .env}
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
