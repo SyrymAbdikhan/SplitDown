@@ -6,6 +6,7 @@ import { formatMoney } from "@/lib/money";
 import { requireUserId } from "@/lib/supabase/server";
 import { ui } from "@/lib/ui";
 import { InviteActions, NewGroupButton } from "./dashboard-client";
+import { DashboardHeader, GroupsSkeleton } from "./parts";
 
 export const metadata: Metadata = { title: "Your groups" };
 
@@ -19,13 +20,7 @@ type InviteRow = { id: string; group_id: string; group_name: string; group_emoji
 export default function Dashboard() {
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Your groups</h1>
-          <p className={`mt-1 ${ui.muted}`}>Balances show what&apos;s open since each group&apos;s last split.</p>
-        </div>
-        <NewGroupButton />
-      </div>
+      <DashboardHeader />
       <Suspense>
         <Invites />
       </Suspense>
@@ -97,32 +92,6 @@ async function Groups() {
             </div>
           )}
         </Link>
-      ))}
-    </div>
-  );
-}
-
-function GroupsSkeleton() {
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
-      <span className="sr-only">Loading groups…</span>
-      {[0, 1, 2].map((i) => (
-        <div key={i} className={`${ui.card} p-5`}>
-          <div className="flex items-center gap-3">
-            <span className={`${ui.skeleton} size-11 rounded-xl`} />
-            <div className="flex-1 space-y-2">
-              <div className={`${ui.skeleton} h-4 w-2/3`} />
-              <div className={`${ui.skeleton} h-3 w-1/3`} />
-            </div>
-          </div>
-          <div className="mt-6 flex items-end justify-between">
-            <div className="space-y-2">
-              <div className={`${ui.skeleton} h-3 w-16`} />
-              <div className={`${ui.skeleton} h-4 w-24`} />
-            </div>
-            <div className={`${ui.skeleton} h-4 w-20`} />
-          </div>
-        </div>
       ))}
     </div>
   );
