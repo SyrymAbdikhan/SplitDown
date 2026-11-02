@@ -1,6 +1,6 @@
 import { ui } from "@/lib/ui";
 
-// Generic page skeleton (settings, join) shown instantly on navigation; the group page has its own.
+// Settings skeleton. Each page keeps its own loading screen, so none flashes on the wrong page.
 export default function Loading() {
   return (
     <div className="mx-auto max-w-xl space-y-6" aria-busy="true">
