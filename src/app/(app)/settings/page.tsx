@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { requireUserId } from "@/lib/supabase/server";
 import { ui } from "@/lib/ui";
+import { DeleteAccount } from "./delete-account";
 import { ProfileForm } from "./profile-form";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -28,6 +29,13 @@ export default async function SettingsPage() {
         <form action="/auth/signout" method="post">
           <button className={ui.btnOutline}>Sign out</button>
         </form>
+      </section>
+      <section className={`${ui.card} flex flex-wrap items-center justify-between gap-4 border-red-200 p-6 dark:border-red-900/50`}>
+        <div className="min-w-0 flex-1">
+          <h2 className="font-semibold">Delete account</h2>
+          <p className={`text-sm ${ui.muted}`}>Permanently remove your account. You&apos;ll need to settle up and hand over groups you own first.</p>
+        </div>
+        <DeleteAccount userId={userId} />
       </section>
     </div>
   );

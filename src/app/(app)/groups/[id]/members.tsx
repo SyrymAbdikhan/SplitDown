@@ -199,6 +199,7 @@ export function InviteModal({ ctx, open, onClose }: { ctx: Ctx; open: boolean; o
         .from("profiles")
         .select("id, handle, display_name, avatar_url")
         .not("handle", "is", null)
+        .eq("deleted", false)
         .or(`handle.ilike.%${term}%,display_name.ilike.%${term}%`)
         .limit(8);
       setResults((data ?? []).filter((p) => !ctx.members.some((m) => m.user_id === p.id)));

@@ -193,5 +193,33 @@ do $$ begin
   assert (select count(*) from groups) = 0;
   assert (select count(*) from profiles where guest_expense_id is not null) = 0, 'guests left behind';
 end $$;
+-- Account deletion: blocked by open expenses and shared ownership; afterwards history stays intact
+select pg_temp.as_user(:A);
+select create_group('Flat', '🏠', 'usd') as g2 \gset
+select create_invite_link(:'g2', 0) as tok2 \gset
+select pg_temp.as_user(:B); select join_by_token(:'tok2');
+select pg_temp.as_user(:A);
+select save_expense(:'g2', null, 'Rent', 1000, 'housing', :A, null, array[:A, :B]::uuid[]);
+select pg_temp.as_user(:B);
+select pg_temp.fails('select delete_account()', 'open expenses in "Flat"');
+select pg_temp.as_user(:A);
+select pg_temp.fails('select delete_account()', 'You own "Flat"');
+select split_bill(:'g2');
+select pg_temp.as_user(:B);
+select delete_account();
+do $$ begin
+  assert not exists (select 1 from auth.users where id = 'bbbbbbbb-0000-0000-0000-000000000000'), 'auth user still there';
+  assert (select deleted and display_name = 'Deleted user' and handle like 'deleted_%' and avatar_url is null
+          from profiles where id = 'bbbbbbbb-0000-0000-0000-000000000000'), 'profile not anonymized';
+  assert not exists (select 1 from group_members where user_id = 'bbbbbbbb-0000-0000-0000-000000000000'), 'still a member';
+  assert exists (select 1 from settlement_transfers where from_user = 'bbbbbbbb-0000-0000-0000-000000000000'), 'history lost';
+end $$;
+select pg_temp.as_user(:A);
+select pg_temp.fails(format('select invite_member(%L, %L)', :'g2', :B), 'User not found');
+select delete_account(); -- A is now alone in Flat, so the group goes too
+do $$ begin
+  assert not exists (select 1 from groups), 'solo group not deleted';
+  assert (select deleted from profiles where id = 'aaaaaaaa-0000-0000-0000-000000000000');
+end $$;
 \echo ALL TESTS PASSED
 SQL
