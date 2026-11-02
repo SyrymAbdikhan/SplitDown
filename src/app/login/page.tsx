@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Logo } from "@/components/kit";
 import { safeNext } from "@/lib/safe-next";
 import { LoginForm } from "./login-form";
@@ -18,7 +19,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         {error && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">That sign-in link didn&apos;t work. Please try again.</p>}
         <LoginForm next={safeNext(typeof next === "string" ? next : null)} />
       </div>
-      <p className="mt-6 max-w-xs text-center text-xs text-neutral-500">By continuing you agree to split things fairly.</p>
+      <p className="mt-6 max-w-xs text-center text-xs text-neutral-500">
+        By continuing you agree to split things fairly. See how we handle your data in our{" "}
+        <Link href="/privacy" className="underline hover:text-neutral-900 dark:hover:text-white">privacy policy</Link>.
+      </p>
     </main>
   );
 }

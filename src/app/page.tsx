@@ -168,7 +168,10 @@ export default async function Home() {
       <footer className="border-t border-neutral-100 dark:border-neutral-900">
         <div className={`mx-auto flex max-w-6xl items-center justify-between px-4 py-8 text-sm ${ui.muted}`}>
           <Logo />
-          <span>© {new Date().getFullYear()} SplitDown</span>
+          <span className="flex gap-4">
+            <Link href="/privacy" className="hover:text-neutral-900 dark:hover:text-white">Privacy</Link>
+            <span>© {new Date().getFullYear()} SplitDown</span>
+          </span>
         </div>
       </footer>
     </>
