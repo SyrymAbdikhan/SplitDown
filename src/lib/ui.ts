@@ -17,6 +17,7 @@ export const ui = {
   chip: "inline-flex items-center gap-1 rounded-md border border-neutral-200 px-2 py-0.5 text-xs font-medium dark:border-neutral-800",
   muted: "text-neutral-500 dark:text-neutral-400",
   error: "rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300",
+  skeleton: "animate-pulse rounded-md bg-neutral-200 dark:bg-neutral-800",
 };
 
 /** Turns a Supabase/Postgres error into a user-facing sentence. */

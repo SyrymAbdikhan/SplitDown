@@ -1,11 +1,11 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { Avatar, Logo, ThemeToggle } from "@/components/kit";
 import { requireUserId } from "@/lib/supabase/server";
+import { ui } from "@/lib/ui";
 
-export default async function AppLayout({ children }: LayoutProps<"/">) {
-  const { supabase, userId } = await requireUserId();
-  const { data: profile } = await supabase.from("profiles").select("id, handle, display_name, avatar_url").eq("id", userId).single();
-
+// The header frame renders at once; the avatar streams in when the profile arrives.
+export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/80 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/80">
@@ -13,14 +13,31 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           <Logo href="/dashboard" />
           <div className="ml-auto flex items-center gap-1">
             <ThemeToggle />
-            <Link href="/settings" className="ml-1 flex items-center gap-2 rounded-lg py-1 pr-2 pl-1 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800">
-              <Avatar profile={profile ?? undefined} size={28} />
-              <span className="hidden font-medium sm:inline">@{profile?.handle}</span>
-            </Link>
+            <Suspense
+              fallback={
+                <span className="ml-1 flex items-center gap-2 py-1 pr-2 pl-1">
+                  <span className={`${ui.skeleton} size-7 rounded-full`} />
+                  <span className={`${ui.skeleton} hidden h-4 w-16 sm:block`} />
+                </span>
+              }
+            >
+              <UserMenu />
+            </Suspense>
           </div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
     </>
+  );
+}
+
+async function UserMenu() {
+  const { supabase, userId } = await requireUserId();
+  const { data: profile } = await supabase.from("profiles").select("id, handle, display_name, avatar_url").eq("id", userId).single();
+  return (
+    <Link href="/settings" className="ml-1 flex items-center gap-2 rounded-lg py-1 pr-2 pl-1 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800">
+      <Avatar profile={profile ?? undefined} size={28} />
+      <span className="hidden font-medium sm:inline">@{profile?.handle}</span>
+    </Link>
   );
 }
