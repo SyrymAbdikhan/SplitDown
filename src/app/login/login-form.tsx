@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Mail } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { errMsg, ui } from "@/lib/ui";
 
@@ -21,77 +20,23 @@ const GitHubIcon = () => (
   </svg>
 );
 
+// Google and GitHub only for now. Email sign-in needs a custom SMTP provider in Supabase first.
 export function LoginForm({ next }: { next: string }) {
-  const router = useRouter();
-  const supabase = createClient();
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const callback = () => `${location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
   async function oauth(provider: "google" | "github") {
     setBusy(provider);
     setError(null);
-    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: callback() } });
+    const { error } = await createClient().auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
+    });
     if (error) {
       setError(errMsg(error));
       setBusy(null);
     }
   }
-
-  async function sendCode(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy("email");
-    setError(null);
-    const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: callback() } });
-    setBusy(null);
-    if (error) setError(errMsg(error));
-    else setSent(true);
-  }
-
-  async function verify(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy("verify");
-    setError(null);
-    const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code.trim(), type: "email" });
-    if (error) {
-      setError(errMsg(error));
-      setBusy(null);
-      return;
-    }
-    router.replace(next);
-    router.refresh();
-  }
-
-  if (sent)
-    return (
-      <form onSubmit={verify} className="space-y-4">
-        <div className="rounded-lg bg-blue-50 px-3 py-2.5 text-sm text-blue-900 dark:bg-blue-950/40 dark:text-blue-200">
-          We sent a code and a sign-in link to <b>{email}</b>. Enter the code, or click the link in the email.
-        </div>
-        <input
-          className={`${ui.input} h-11 text-center font-mono text-lg tracking-[0.4em]`}
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          placeholder="••••••"
-          maxLength={10}
-          value={code}
-          onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-          autoFocus
-          required
-        />
-        {error && <p className={ui.error}>{error}</p>}
-        <button className={`${ui.btnPrimary} h-10 w-full`} disabled={busy !== null || code.length < 6}>
-          {busy === "verify" && <Loader2 size={16} className="animate-spin" />} Verify and continue
-        </button>
-        <button type="button" onClick={() => (setSent(false), setCode(""), setError(null))} className={`${ui.btnGhost} w-full`}>
-          <ArrowLeft size={16} /> Use a different email
-        </button>
-      </form>
-    );
 
   return (
     <div className="space-y-3">
@@ -101,15 +46,6 @@ export function LoginForm({ next }: { next: string }) {
       <button onClick={() => oauth("github")} disabled={busy !== null} className={`${ui.btnOutline} h-10 w-full`}>
         {busy === "github" ? <Loader2 size={16} className="animate-spin" /> : <GitHubIcon />} Continue with GitHub
       </button>
-      <div className="flex items-center gap-3 py-2 text-xs text-neutral-400">
-        <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" /> or <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
-      </div>
-      <form onSubmit={sendCode} className="space-y-3">
-        <input className={`${ui.input} h-10`} type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <button className={`${ui.btnDark} h-10 w-full`} disabled={busy !== null}>
-          {busy === "email" ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />} Continue with email
-        </button>
-      </form>
       {error && <p className={ui.error}>{error}</p>}
     </div>
   );
