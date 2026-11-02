@@ -21,6 +21,18 @@ const GitHubIcon = () => (
 );
 
 // Google and GitHub only for now. Email sign-in needs a custom SMTP provider in Supabase first.
+/** Which sign-in providers the Supabase project has switched on; null if that can't be read (then just try). */
+async function enabledProviders(): Promise<Record<string, boolean> | null> {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/settings`, {
+      headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY! },
+    });
+    return res.ok ? (await res.json()).external : null;
+  } catch {
+    return null;
+  }
+}
+
 export function LoginForm({ next }: { next: string }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +40,11 @@ export function LoginForm({ next }: { next: string }) {
   async function oauth(provider: "google" | "github") {
     setBusy(provider);
     setError(null);
+    // A provider that's off in Supabase answers with a bare JSON 400 on supabase.co, so check first.
+    if ((await enabledProviders())?.[provider] === false) {
+      setError(`${provider === "google" ? "Google" : "GitHub"} sign-in isn't available right now. Try the other option.`);
+      return setBusy(null);
+    }
     const { error } = await createClient().auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
