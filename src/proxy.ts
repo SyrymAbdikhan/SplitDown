@@ -26,6 +26,12 @@ export async function proxy(request: NextRequest) {
     return r;
   };
 
+  // Supabase sends failed sign-ins back with ?error_description=… on whatever page it lands on.
+  const params = request.nextUrl.searchParams;
+  if (params.has("error_description") && pathname !== "/login") {
+    return redirectTo(`/login?error=${encodeURIComponent(params.get("error_code") || params.get("error") || "auth")}`);
+  }
+
   if (!data?.claims && PRIVATE.some((p) => pathname.startsWith(p))) {
     return redirectTo(`/login?next=${encodeURIComponent(pathname + search)}`);
   }
